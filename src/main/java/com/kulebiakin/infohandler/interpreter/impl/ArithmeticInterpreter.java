@@ -7,6 +7,7 @@ import java.util.Stack;
 public class ArithmeticInterpreter implements ExpressionInterpreter {
 
     private static final String EXPRESSION_REGEX = "^[\\d\\s()+\\-*/.]+$";
+    private static final String NUMBER_REGEX = "-?\\d+(\\.\\d+)?";
 
     @Override
     public boolean isArithmeticExpression(String input) {
@@ -84,7 +85,7 @@ public class ArithmeticInterpreter implements ExpressionInterpreter {
         private double evalPostfix(String postfix) {
             Stack<Double> stack = new Stack<>();
             for (String token : postfix.split("\\s+")) {
-                if (token.matches("-?\\d+(\\.\\d+)?")) {
+                if (token.matches(NUMBER_REGEX)) {
                     stack.push(Double.parseDouble(token));
                 } else if (isOperator(token.charAt(0)) && token.length() == 1) {
                     double b = stack.pop();
