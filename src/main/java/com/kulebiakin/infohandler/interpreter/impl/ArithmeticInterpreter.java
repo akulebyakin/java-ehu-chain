@@ -6,7 +6,7 @@ import java.util.Stack;
 
 public class ArithmeticInterpreter implements ExpressionInterpreter {
 
-    private static final String EXPRESSION_REGEX = ".*[\\d+\\-*/()]+.*";
+    private static final String EXPRESSION_REGEX = "^[\\d\\s()+\\-*/.]+$";
 
     @Override
     public boolean isArithmeticExpression(String input) {
@@ -34,42 +34,59 @@ public class ArithmeticInterpreter implements ExpressionInterpreter {
             return evalPostfix(postfix);
         }
 
-        private String toPostfix(String expr) {
-            StringBuilder result = new StringBuilder();
+        private String toPostfix(String expression) {
+            StringBuilder output = new StringBuilder();
             Stack<Character> stack = new Stack<>();
+            StringBuilder numberBuffer = new StringBuilder();
 
-            for (char ch : expr.replaceAll("\\s+", "").toCharArray()) {
-                if (Character.isDigit(ch)) {
-                    result.append(ch);
-                } else if (ch == '(') {
-                    stack.push(ch);
-                } else if (ch == ')') {
-                    while (!stack.isEmpty() && stack.peek() != '(') {
-                        result.append(' ').append(stack.pop());
+            for (int i = 0; i < expression.length(); i++) {
+                char ch = expression.charAt(i);
+
+                if (Character.isDigit(ch) || ch == '.') {
+                    numberBuffer.append(ch);
+                } else {
+                    if (!numberBuffer.isEmpty()) {
+                        output.append(numberBuffer).append(" ");
+                        numberBuffer.setLength(0);
                     }
-                    stack.pop();
-                } else if (isOperator(ch)) {
-                    result.append(' ');
-                    while (!stack.isEmpty() && precedence(ch) <= precedence(stack.peek())) {
-                        result.append(stack.pop()).append(' ');
+
+                    if (ch == '(') {
+                        stack.push(ch);
+                    } else if (ch == ')') {
+                        while (!stack.isEmpty() && stack.peek() != '(') {
+                            output.append(stack.pop()).append(" ");
+                        }
+                        stack.pop();
+                    } else if (isOperator(ch)) {
+                        if (ch == '-' && (i == 0 || expression.charAt(i - 1) == '(')) {
+                            output.append("0 "); // e.g., -3 -> 0 3 -
+                        }
+
+                        while (!stack.isEmpty() && precedence(ch) <= precedence(stack.peek())) {
+                            output.append(stack.pop()).append(" ");
+                        }
+                        stack.push(ch);
                     }
-                    stack.push(ch);
                 }
             }
 
-            while (!stack.isEmpty()) {
-                result.append(' ').append(stack.pop());
+            if (!numberBuffer.isEmpty()) {
+                output.append(numberBuffer).append(" ");
             }
 
-            return result.toString();
+            while (!stack.isEmpty()) {
+                output.append(stack.pop()).append(" ");
+            }
+
+            return output.toString().trim();
         }
 
         private double evalPostfix(String postfix) {
             Stack<Double> stack = new Stack<>();
-            for (String token : postfix.trim().split("\\s+")) {
+            for (String token : postfix.split("\\s+")) {
                 if (token.matches("-?\\d+(\\.\\d+)?")) {
                     stack.push(Double.parseDouble(token));
-                } else if (token.length() == 1 && isOperator(token.charAt(0))) {
+                } else if (isOperator(token.charAt(0)) && token.length() == 1) {
                     double b = stack.pop();
                     double a = stack.pop();
                     switch (token.charAt(0)) {
@@ -96,7 +113,15 @@ public class ArithmeticInterpreter implements ExpressionInterpreter {
         }
 
         private int precedence(char ch) {
-            return (ch == '+' || ch == '-') ? 1 : 2;
+            switch (ch) {
+                case '+':
+                case '-':
+                    return 1;
+                case '*':
+                case '/':
+                    return 2;
+            }
+            return -1;
         }
     }
 }

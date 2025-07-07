@@ -8,13 +8,15 @@ import java.util.Set;
 
 public class PalindromeService {
 
+    private static final String NON_ALPHABETIC_REGEX = "[^a-zA-Zа-яА-ЯёЁ]";
+
     public Set<String> findPalindromes(TextComponent text) {
         Set<String> result = new HashSet<>();
         text.getChildren().forEach(paragraph ->
             paragraph.getChildren().forEach(sentence ->
                 sentence.getChildren().forEach(lexeme -> {
                     String word = lexeme.toString()
-                        .replaceAll("[^a-zA-Zа-яА-ЯёЁ]", "")
+                        .replaceAll(NON_ALPHABETIC_REGEX, "")
                         .toLowerCase(Locale.ROOT);
                     if (word.length() > 1 && isPalindrome(word)) {
                         result.add(word);
