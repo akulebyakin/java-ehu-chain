@@ -35,7 +35,7 @@ public class InfoHandlerApplication {
             // 1. Word Frequency
             WordFrequencyService freqService = new WordFrequencyService();
             Map<String, Integer> wordFreq = freqService.countWordFrequencies(text);
-            System.out.println("=== Word Frequency ===");
+            System.out.println("\n=== Word Frequency ===");
             wordFreq.forEach((word, count) -> System.out.printf("%s: %d%n", word, count));
 
             // 2. Vowels / Consonants
